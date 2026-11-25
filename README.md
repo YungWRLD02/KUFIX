@@ -158,7 +158,7 @@ createdb app_db
 ### 3. Apply the schema
 
 ```bash
-npx drizzle-kit push
+npm run db:push
 ```
 
 This creates users, providers, service categories, bookings, quote requests, quotations, reviews, support requests, job posts, job offers, work posts, chat threads and chat messages.
@@ -311,7 +311,7 @@ All models are defined in `src/db/schema.ts`.
 | `chat_threads` | Provider and support conversations |
 | `chat_messages` | Messages inside chat threads |
 
-`npx drizzle-kit push` applies schema changes directly. For a managed production deployment, review the generated SQL before applying it to shared data.
+`npm run db:push` applies schema changes directly. For a managed production deployment, review the generated SQL before applying it to shared data.
 
 ---
 
@@ -403,7 +403,15 @@ Set the variable in `.env` and restart the server.
 
 ### Tables do not exist
 
-Run `npx drizzle-kit push`. Confirm that the URL in `drizzle.config.json` matches your local database.
+Run `npm run db:push`. Confirm that the URL in `drizzle.config.ts` matches your local database.
+
+### `Failed query: select ... from providers`
+
+The query is valid; the database connection or schema is not. Check these in order:
+
+1. Run `npm run db:push` so the database matches `src/db/schema.ts`.
+2. If you changed `.env`, restart `npm run dev`. Next.js reads environment variables once at startup.
+3. Open `/api/health` and check the server console for the underlying database error.
 
 ### Login redirects back to login
 
@@ -435,7 +443,7 @@ Summary:
 1. Provision PostgreSQL and set `DATABASE_URL`.
 2. Set a strong `SESSION_SECRET`.
 3. Install dependencies and build with `npm run build`.
-4. Apply the schema with `npx drizzle-kit push` or reviewed migrations from a controlled job.
+4. Apply the schema with `npm run db:push` or reviewed migrations from a controlled job.
 5. Start `npm run start` behind HTTPS.
 6. Verify `/api/health`.
 7. Keep all instances on the same `SESSION_SECRET` and database.
