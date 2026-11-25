@@ -1,4 +1,4 @@
-l# KUFIX Setup Guide
+# KUFIX Setup Guide
 
 This guide covers local development, database setup, verification, common problems and production deployment.
 
@@ -29,7 +29,7 @@ psql --version
 - Managed PostgreSQL or a self-managed PostgreSQL instance with TLS.
 - HTTPS termination.
 - A single, persistent `SESSION_SECRET`.
-- A deployment platform that supports Next.js standalone/server builds (Vercel, Railway, Render, Fly.io, a VPS with systemd, or similar).
+- A persistent Node host: Railway, Fly.io, Render, or a VPS with systemd. (See section 12 — Option 2 is the only supported deployment path.)
 
 ---
 
@@ -464,97 +464,113 @@ curl -sS -o /dev/null -w '%{http_code}\n' http://localhost:3000/api/health
 
 ---
 
-## 12. Production deployment
+## 12. Production deployment — Option 2 (persistent Node)
 
-### Deployment checklist
+KUFIX targets a single deployment path: a persistent Node host. This is the only supported
+path because verification document uploads live on disk (`/app/private/uploads/verification`)
+and need to survive across deploys. Pick one of the four hosts below.
 
-- [ ] PostgreSQL provisioned with backups enabled.
-- [ ] HTTPS certificate configured.
-- [ ] `DATABASE_URL` set in the hosting environment.
-- [ ] Strong `SESSION_SECRET` set and stored in a secret manager.
-- [ ] Schema applied using `drizzle-kit push` or reviewed migrations.
-- [ ] Build completes without errors.
-- [ ] `/api/health` returns `{"ok":true}`.
-- [ ] Demo and real login tested on the deployed URL.
-- [ ] Logs and error monitoring enabled.
-- [ ] Cookie domain and SameSite behaviour verified in the real preview context.
-
-### Generic Node deployment
-
-On the server:
+### 12.1 Quick start (any host with Docker)
 
 ```bash
 git clone <your-repository-url> kufix
 cd kufix
-npm ci
-npx drizzle-kit push
-npm run build
-SESSION_SECRET="$(openssl rand -hex 32)" npm run start
+cp .env.example .env
+$EDITOR .env               # DATABASE_URL, SESSION_SECRET, PAYSTACK_SECRET_KEY
+docker compose up -d --build
+docker compose run --rm migrate
 ```
 
-Use a process manager or service unit rather than leaving `npm run start` in a temporary shell.
+`docker-compose.yml` starts PostgreSQL and the app together, mounts
+`./private/uploads/verification` into the container, and health-checks `/api/health`.
+The migrate profile applies the Drizzle schema once.
 
-Example systemd unit:
+### 12.2 VPS / bare-metal (systemd)
 
-```ini
-[Unit]
-Description=KUFIX
-After=network.target postgresql.service
-
-[Service]
-Type=simple
-User=kufix
-WorkingDirectory=/srv/kufix
-Environment=NODE_ENV=production
-EnvironmentFile=/srv/kufix/.env
-ExecStart=/usr/bin/npm run start
-Restart=always
-RestartSec=5
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Then:
+Recommended if you want full control. The image already includes a systemd unit at
+`deploy/kufix.service` that runs `npm ci`, `npm run build`, `npx drizzle-kit push` and then
+`npm run start` — so the whole pipeline happens on every boot.
 
 ```bash
+sudo useradd --system --home /opt/kufix --shell /usr/sbin/nologin kufix
+sudo mkdir -p /opt/kufix /opt/kufix/private/uploads/verification
+sudo chown -R kufix:kufix /opt/kufix
+sudo git clone <your-repository-url> /opt/kufix
+sudo cp deploy/kufix.service /etc/systemd/system/
+sudo $EDITOR /opt/kufix/.env         # fill in secrets; see .env.example
 sudo systemctl daemon-reload
 sudo systemctl enable --now kufix
 sudo journalctl -u kufix -f
 ```
 
-### Vercel
+The unit reads `/opt/kufix/.env` via `EnvironmentFile`. Keep it owned by `root:kufix` with
+`0640` permissions so the app can read it but nobody else can.
 
-1. Import the repository.
-2. Set the framework preset to Next.js.
-3. Add environment variables:
-   - `DATABASE_URL`
-   - `SESSION_SECRET`
-4. Deploy.
-5. Run `npx drizzle-kit push` from a trusted environment using the same production `DATABASE_URL`, or add reviewed migrations to the release pipeline.
-6. Open `https://<deployment>/api/health`.
+### 12.3 Railway
 
-Use a pooled PostgreSQL URL where appropriate. Long-lived server actions use the Drizzle pool configured in `src/db/index.ts`.
+1. Create a new project and add a PostgreSQL database.
+2. Create a service from this repository and point Railway at `deploy/railway.json`
+   (or set the build to `Dockerfile` in Railway's dashboard).
+3. Set `DATABASE_URL` from the database's connection string and `SESSION_SECRET`
+   (generate with `openssl rand -hex 32`).
+4. Set `PAYSTACK_SECRET_KEY` if you have a Paystack account.
+5. Add a persistent volume mounted at `/app/private/uploads/verification` (Railway volumes
+   or a separate Persistent Disk service).
+6. Run the schema once from a Railway one-off job: `npx drizzle-kit push`.
+7. Open `https://<your-service>/api/health` — expect `{"ok":true}`.
 
-### Railway / Render / Fly.io
+### 12.4 Fly.io
 
-1. Create the web service and PostgreSQL database.
-2. Set `DATABASE_URL` from the platform’s database connection variable.
-3. Generate and set `SESSION_SECRET`.
-4. Build command: `npm run build`.
-5. Start command: `npm run start`.
-6. Run schema creation once from a deployment shell or one-off job.
-7. Verify `/api/health`.
+```bash
+fly launch --no-deploy            # use deploy/fly.toml as the app config
+fly volumes create kufix_uploads --size 1 --region <your-region>
+fly secrets set DATABASE_URL=... SESSION_SECRET=... PAYSTACK_SECRET_KEY=...
+fly deploy
+fly ssh console -C "npx drizzle-kit push"
+```
 
-Keep `SESSION_SECRET` identical for every replica. Rotating it logs out all sessions.
+`deploy/fly.toml` mounts the `kufix_uploads` volume at
+`/app/private/uploads/verification` and health-checks `/api/health`.
 
-### Docker deployment example
+### 12.5 Render
 
-This repository does not include a Dockerfile. A minimal one can be added if needed; build and runtime stages should both use Node 20+ and preserve `.next`, `public`, `node_modules` and `.env`/environment injection.
+1. Create a Blueprint from `deploy/render.yaml` (or import it in the dashboard).
+2. Render provisions the Postgres database and a 1 GB disk mounted at
+   `/app/private/uploads/verification`.
+3. Fill in `PAYSTACK_SECRET_KEY` (or leave it blank to use simulated payments).
+4. Render runs the Dockerfile on each deploy. The schema is applied by running
+   `npx drizzle-kit push` from a one-off job on first deploy.
 
-Run schema changes as a one-off job, not on every replica start.
+### 12.6 Deployment checklist (all hosts)
 
----
+- [ ] PostgreSQL provisioned with backups enabled.
+- [ ] HTTPS certificate configured (Fly/Render/Railway do this for you).
+- [ ] `DATABASE_URL` set and points at the right host.
+- [ ] `SESSION_SECRET` set to a strong random value (`openssl rand -hex 32`).
+- [ ] `PAYSTACK_SECRET_KEY` set if you plan to use real Paystack deposits and payouts.
+- [ ] Persistent disk mounted at `/app/private/uploads/verification`.
+- [ ] Schema applied with `npx drizzle-kit push` (or the migrate profile).
+- [ ] `/api/health` returns `{"ok":true}`.
+- [ ] Sign in with a real account and a demo account on the deployed URL.
+- [ ] Upload a test verification document and confirm it survives a redeploy.
+- [ ] Confirm a test Paystack deposit and payout if `PAYSTACK_SECRET_KEY` is set.
+- [ ] Logs and error monitoring enabled.
+
+### 12.7 What changed for Option 2
+
+- Verification document uploads now work reliably (persistent disk).
+- Paystack deposits and payouts work end-to-end (server-side webhook, HMAC-SHA512).
+- Escrow, wallet, chat and post engagement all work without network restrictions.
+- Sessions work because the app is served from your own domain with standard cookies.
+- Demo accounts remain available on the deployed URL for review and onboarding.
+
+### 12.8 What is intentionally not in scope
+
+- Serverless platforms (Vercel, Cloudflare Pages, Netlify) — they do not provide the
+  persistent filesystem KUFIX needs for verification document uploads.
+- Payment processing is handled by Paystack. The wallet is the app's ledger; Paystack is
+  the money rail. No escrow, no wallet, no fees are processed outside these two layers.
+- Mobile apps and native SMS/OTP are future work.
 
 ## 13. Backups and maintenance
 

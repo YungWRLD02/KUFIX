@@ -1,0 +1,68 @@
+# ============================================================
+# KUFIX — Option 2: persistent Node deployment
+# The recommended path for independent ownership.
+# PostgreSQL + app run in one place with a named volume for
+# verification document uploads.
+#
+#   cp .env.example .env   # edit DATABASE_URL, SESSION_SECRET, PAYSTACK_SECRET_KEY
+#   docker compose up -d --build
+# ============================================================
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: kufix-postgres
+    environment:
+      POSTGRES_USER: kufix
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kufix_dev_password}
+      POSTGRES_DB: kufix
+    volumes:
+      - kufix-pgdata:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U kufix"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kufix-app
+    environment:
+      # Override DATABASE_URL in .env to point at another host if needed.
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kufix}:${POSTGRES_PASSWORD:-kufix_dev_password}@db:5432/${POSTGRES_DB:-kufix}
+      SESSION_SECRET: ${SESSION_SECRET:?set SESSION_SECRET in .env}
+      PAYSTACK_SECRET_KEY: ${PAYSTACK_SECRET_KEY:-}
+      NODE_ENV: production
+    volumes:
+      # Persistent disk for verification document uploads.
+      # Swap the bind mount for a named volume or attach a real disk in production.
+      - ./private/uploads/verification:/app/private/uploads/verification
+    ports:
+      - "${PORT:-3000}:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Run `docker compose run --rm migrate` to apply the Drizzle schema.
+  migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kufix-migrate
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-kufix}:${POSTGRES_PASSWORD:-kufix_dev_password}@db:5432/${POSTGRES_DB:-kufix}
+    entrypoint: ["npx", "drizzle-kit", "push"]
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - migrate
+
+volumes:
+  kufix-pgdata:

@@ -1,0 +1,46 @@
+# Fly.io app config (Option 2 — persistent Node deployment)
+# Copy to the project root as fly.toml before running:
+#   fly launch --no-deploy
+#   fly volumes create kufix_uploads --size 1 --region <your-region>
+#   fly secrets set DATABASE_URL=... SESSION_SECRET=... PAYSTACK_SECRET_KEY=...
+#   fly deploy
+
+app = "kufix"
+primary_region = "ams"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  PORT = "3000"
+
+# Persistent disk for verification document uploads.
+[mounts]
+  source = "kufix_uploads"
+  destination = "/app/private/uploads/verification"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    soft_limit = 250
+    hard_limit = 500
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "30s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1

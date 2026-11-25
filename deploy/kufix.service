@@ -1,0 +1,38 @@
+# systemd unit for a VPS / bare-metal Linux host (Ubuntu 22.04 / Debian 12)
+# Install to /etc/systemd/system/kufix.service then:
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now kufix
+#   journalctl -u kufix -f
+
+[Unit]
+Description=KUFIX marketplace
+Documentation=https://github.com/your-org/kufix
+After=network-online.target postgresql.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=kufix
+Group=kufix
+WorkingDirectory=/opt/kufix
+# EnvironmentFile points at /opt/kufix/.env — must contain DATABASE_URL,
+# SESSION_SECRET, and (if used) PAYSTACK_SECRET_KEY. Never commit this file.
+EnvironmentFile=/opt/kufix/.env
+Environment=NODE_ENV=production
+ExecStartPre=/usr/bin/npm ci --no-audit --no-fund
+ExecStartPre=/usr/bin/npm run build
+ExecStartPre=/usr/bin/npx drizzle-kit push
+ExecStart=/usr/bin/npm run start
+Restart=always
+RestartSec=5
+# Give the process time to flush HTTP responses before killing it.
+TimeoutStopSec=30
+# Optional hardening (uncomment if you don't need file uploads outside the app):
+# NoNewPrivileges=true
+# PrivateTmp=true
+# ProtectSystem=strict
+# ReadWritePaths=/opt/kufix/private
+# StateDirectory=kufix
+
+[Install]
+WantedBy=multi-user.target

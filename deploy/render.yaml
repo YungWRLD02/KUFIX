@@ -1,0 +1,39 @@
+# Render blueprint — Option 2 (persistent Node deployment)
+# Create a Blueprint in the Render dashboard pointed at this file,
+# or use: render blueprint launch deploy/render.yaml
+# Render provisions the Postgres database and mounts a disk for uploads.
+
+services:
+  - type: web
+    name: kufix-app
+    runtime: docker
+    repo: https://github.com/your-org/kufix
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /api/health
+    autoDeploy: true
+    disk:
+      name: kufix-uploads
+      mountPath: /app/private/uploads/verification
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: kufix-postgres
+          property: connectionString
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PORT
+        value: "3000"
+
+databases:
+  - name: kufix-postgres
+    plan: starter
+    databaseName: kufix
+    user: kufix
+    ipAllowList: []
