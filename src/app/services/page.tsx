@@ -1,0 +1,5 @@
+import { Header, Footer, PageBanner, CategoryCards } from '@/components/site';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
+export const metadata = { title: 'Explore services' };
+export default function ServicesPage() { return <><Header/><main><PageBanner eyebrow="SERVICES FOR EVERYDAY LIFE" title="The help you need, all in one place." description="Explore local professionals for home repairs, maintenance, cleaning and more. We’re starting with six essential services in Abuja."/><section className="content-section"><div className="container"><CategoryCards/><div style={{marginTop:52,padding:'32px',background:'#f4f8f6',borderRadius:12,display:'flex',alignItems:'center',justifyContent:'space-between',gap:20,flexWrap:'wrap'}}><div><h2 style={{fontSize:24,color:'#102b3b',margin:'0 0 8px'}}>Not sure where to start?</h2><p style={{fontSize:13,color:'#70828a',margin:0}}>Describe the work and let relevant professionals respond with quotations.</p></div><Link className="btn btn-primary" href="/request-quote">Request a quote <ArrowRight size={17}/></Link></div></div></section></main><Footer/></>; }

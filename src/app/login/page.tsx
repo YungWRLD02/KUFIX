@@ -1,0 +1,16 @@
+import Link from 'next/link';
+import { ArrowRight, ArrowUpRight, BriefcaseBusiness, ShieldCheck, Sparkles, UserRound } from 'lucide-react';
+import { Header, Footer } from '@/components/site';
+import { DEMO_ACCOUNTS, DEMO_PASSWORD } from '@/lib/demo';
+
+export const metadata = { title: 'Log in or try a demo' };
+const roles = {
+  customer: { title: 'Customer demo', description: 'Explore bookings & quotes', icon: UserRound },
+  provider: { title: 'Provider demo', description: 'Manage jobs & requests', icon: BriefcaseBusiness },
+  admin: { title: 'Admin demo', description: 'Preview platform management', icon: ShieldCheck },
+};
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const { error } = await searchParams;
+  return <><Header/><main className="login-page"><div className="container login-layout"><section className="login-card"><div className="eyebrow"><span className="eyebrow-line"/> WELCOME BACK</div><h1>Good to see<br/><em>you again.</em></h1><p>Log in to manage your bookings, quotes and profile, all in one place.</p>{error && <div className="alert alert-error">{error}</div>}<form action="/api/auth/login" method="post" className="form-stack"><div className="form-field"><label htmlFor="email">Email address</label><input id="email" name="email" type="email" autoComplete="email" placeholder="you@example.com" required/></div><div className="form-field"><label htmlFor="password">Password</label><input id="password" name="password" type="password" autoComplete="current-password" placeholder="Enter your password" required/></div><button className="btn btn-primary login-submit">Log in <ArrowRight size={17}/></button></form><p className="auth-bottom">New to KUFIX? <Link href="/signup">Create an account <ArrowRight size={14}/></Link></p><div className="login-footnote"><ShieldCheck size={17}/><span>Your information is handled with care.</span></div></section><section className="demo-access" id="demo"><div className="demo-access-top"><span className="demo-sparkle"><Sparkles size={19}/></span><span className="demo-kicker">EXPLORE KUFIX</span></div><h2>Curious? Take a<br/><em>look around.</em></h2><p className="demo-intro">See how KUFIX works from every side. Pick a demo dashboard to get started instantly.</p><div className="demo-login-list">{DEMO_ACCOUNTS.map(account => { const info = roles[account.role]; const Icon = info.icon; return <form action="/api/auth/login" method="post" key={account.role}><input type="hidden" name="mode" value="demo"/><input type="hidden" name="role" value={account.role}/><button type="submit" className="demo-login-option"><span className={`demo-role-icon ${account.role}`}><Icon size={20}/></span><span className="demo-role-copy"><strong>{info.title}</strong><small>{info.description}</small><span>{account.email}</span></span><span className="demo-option-arrow"><ArrowUpRight size={19}/></span></button></form>; })}</div><div className="demo-credentials"><div><span className="demo-credentials-label">PREFER TO LOG IN MANUALLY?</span><p>Use an email above with password <strong>{DEMO_PASSWORD}</strong></p></div></div><p className="demo-disclaimer"><ShieldCheck size={15}/> Demo accounts use illustrative data only and cannot access real accounts or records.</p></section></div></main><Footer/></>;
+}
