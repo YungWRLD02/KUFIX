@@ -26,11 +26,30 @@ const ALLOWED = {
   'application/pdf': ['pdf'],
 } as const;
 
-export function validateDocumentFile(name: string, size: number, mimeType: string) {
+export function validateDocumentFile(name: string, size: number, mimeType: string, buffer?: Buffer) {
   if (size > 5 * 1024 * 1024) return `File is too large (max 5 MB)`;
-  const extOk = Object.values(ALLOWED).some((extensions) => Array.from(extensions as readonly string[]).includes(name.split('.').pop()?.toLowerCase() || ''));
+  const ext = name.split('.').pop()?.toLowerCase() || '';
+  const extOk = Object.values(ALLOWED).some((extensions) => Array.from(extensions as readonly string[]).includes(ext));
   const mimeOk = (Object.keys(ALLOWED) as string[]).includes(mimeType) || mimeType === '';
   if (!extOk && !mimeOk) return 'Only JPEG, PNG, WebP, HEIC or PDF documents are accepted';
+
+  if (buffer && buffer.length >= 4) {
+    // PDF magic bytes: %PDF (25 50 44 46)
+    const isPdf = buffer[0] === 0x25 && buffer[1] === 0x50 && buffer[2] === 0x44 && buffer[3] === 0x46;
+    // JPEG magic bytes: FF D8 FF
+    const isJpeg = buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    // PNG magic bytes: 89 50 4E 47
+    const isPng = buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+    // WebP/RIFF
+    const isRiff = buffer.toString('ascii', 0, 4) === 'RIFF';
+    // HEIC ftyp
+    const isHeic = buffer.length >= 12 && buffer.toString('ascii', 4, 8) === 'ftyp';
+
+    if (!isPdf && !isJpeg && !isPng && !isRiff && !isHeic) {
+      return 'File contents do not match an approved image or PDF document format';
+    }
+  }
+
   return null;
 }
 

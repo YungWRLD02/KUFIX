@@ -1,17 +1,17 @@
 import { db } from '@/db';
 import { postLikes, postComments, users } from '@/db/schema';
-import { and, eq, count, inArray } from 'drizzle-orm';
+import { and, eq, count, and as sqlAnd } from 'drizzle-orm';
 
 export type PostKind = 'work' | 'job';
 
 export async function getPostEngagement(kind: PostKind, postId: string | string[], userId: string | null) {
   const ids = Array.isArray(postId) ? postId : [postId];
   if (!ids.length) return { counts: new Map<string, { likes: number; comments: number; liked: boolean }>(), comments: new Map<string, { id: string; body: string; name: string; createdAt: Date; mine: boolean }[]>() };
-  const likes = await db.select({ postId: postLikes.postId, count: count() }).from(postLikes).where(and(eq(postLikes.postType, kind), inArray(postLikes.postId, ids))).groupBy(postLikes.postId);
-  const userLikes = userId ? await db.select().from(postLikes).where(and(eq(postLikes.postType, kind), inArray(postLikes.postId, ids), eq(postLikes.userId, userId))) : [];
-  const comments = await db.select().from(postComments).where(and(eq(postComments.postType, kind), inArray(postComments.postId, ids)));
+  const likes = await db.select({ postId: postLikes.postId, count: count() }).from(postLikes).where(and(eq(postLikes.postType, kind), sqlAnd(...ids.map(id => eq(postLikes.postId, id))))).groupBy(postLikes.postId);
+  const userLikes = userId ? await db.select().from(postLikes).where(and(eq(postLikes.postType, kind), sqlAnd(...ids.map(id => eq(postLikes.postId, id))), eq(postLikes.userId, userId))) : [];
+  const comments = await db.select().from(postComments).where(and(eq(postComments.postType, kind), sqlAnd(...ids.map(id => eq(postComments.postId, id)))));
   const commentUserIds = [...new Set(comments.map(c => c.userId))];
-  const commentUsers = commentUserIds.length ? await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, commentUserIds)) : [];
+  const commentUsers = commentUserIds.length ? await db.select({ id: users.id, name: users.name }).from(users).where(sqlAnd(...commentUserIds.map(id => eq(users.id, id)))) : [];
   const likedSet = new Set(userLikes.map(l => l.postId));
   const counts = new Map<string, { likes: number; comments: number; liked: boolean }>();
   for (const id of ids) counts.set(id, { likes: 0, comments: 0, liked: likedSet.has(id) });

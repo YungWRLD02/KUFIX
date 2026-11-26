@@ -4,14 +4,12 @@ import { eq, inArray } from 'drizzle-orm';
 import { getUser, getUserFromToken, setSession } from '@/lib/auth';
 import { canAccessThread } from '@/lib/community';
 import { isSameOrigin } from '@/lib/request-security';
-import { isDemoUser } from '@/lib/demo';
 
 export const dynamic = 'force-dynamic';
-const uid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function resolveUser(request: Request, token: string | null) {
   const user = (await getUser()) || (await getUserFromToken(token));
-  if (user && isDemoUser(user)) return null;
   if (user && token) await setSession(user.id);
   return user;
 }

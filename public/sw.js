@@ -6,7 +6,7 @@ self.addEventListener('fetch', event => {
   const request = event.request;
   if (request.method !== 'GET' || new URL(request.url).origin !== self.location.origin) return;
   const url = new URL(request.url);
-  if (url.pathname.startsWith('/_next/') || url.pathname.startsWith('/api/') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/login') || url.pathname.startsWith('/signup') || url.pathname.startsWith('/request-quote') || url.pathname.startsWith('/contact') || url.pathname.startsWith('/professionals')) return;
+  if (url.pathname.startsWith('/_next/') || url.pathname.startsWith('/api/') || url.pathname.startsWith('/dashboard') || url.pathname.startsWith('/login') || url.pathname.startsWith('/signup') || url.pathname.startsWith('/request-quote') || url.pathname.startsWith('/contact') || url.pathname.startsWith('/professionals') || url.pathname.endsWith('.zip')) return;
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).then(response => { if (response.ok && PUBLIC_PAGES.includes(url.pathname)) { const copy = response.clone(); caches.open(CACHE).then(cache => cache.put(request, copy)); } return response; }).catch(() => caches.match(request).then(cached => cached || caches.match('/'))));
   } else if (url.pathname.startsWith('/images/') || url.pathname.startsWith('/icon-')) {

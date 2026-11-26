@@ -5,10 +5,148 @@ import { reviews } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { SearchX } from 'lucide-react';
 import Link from 'next/link';
+
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Find professionals' };
-export default async function ProfessionalsPage({ searchParams }: { searchParams: Promise<{ category?: string; location?: string; availability?: string; verified?: string }> }) {
-  const params = await searchParams; const categories = await getCategories(); const all = await getProviders(); const allReviews = await db.select().from(reviews).where(eq(reviews.hidden, false));
-  const filtered = all.filter(p => (!params.category || offersCategory(p, params.category)) && (!params.location || `${p.location} ${p.area}`.toLowerCase().includes(params.location.toLowerCase())) && (!params.availability || p.available) && (!params.verified || (p.verification !== 'Not verified' && !p.isDemo)));
-  return <><Header/><main><PageBanner eyebrow="FIND YOUR PERSON" title="The right hands for the job." description="Browse local professionals, learn about their services and choose how you’d like to get started."/><section className="content-section"><div className="container filter-layout"><aside className="filter-panel"><h3>Filter results</h3><form action="/professionals"><div className="form-field"><label htmlFor="category">Service category</label><select name="category" id="category" defaultValue={params.category || ''}><option value="">All services</option>{categories.map(c => <option value={c.name} key={c.slug}>{c.name}</option>)}</select></div><div className="form-field"><label htmlFor="location">Location</label><input name="location" id="location" placeholder="e.g. Wuse, Abuja" defaultValue={params.location || ''}/></div><div className="form-field"><label htmlFor="availability">Availability</label><select name="availability" id="availability" defaultValue={params.availability || ''}><option value="">Any availability</option><option value="yes">Available now</option></select></div><div className="form-field"><label htmlFor="verified">Verification</label><select name="verified" id="verified" defaultValue={params.verified || ''}><option value="">Any status</option><option value="yes">Checked profiles only</option></select></div><button className="btn btn-primary">Apply filters</button></form><Link href="/professionals" className="small-link" style={{display:'block',textAlign:'center',marginTop:16}}>Clear filters</Link></aside><div><div className="results-head"><div><h2>{params.category || 'Explore professionals'}</h2><p>{filtered.length} {filtered.length === 1 ? 'profile' : 'profiles'} found · Abuja, Nigeria</p></div><Link href="/request-quote" className="text-link">Request a quote →</Link></div>{filtered.length ? <div className="results-grid">{filtered.map(p => { const own = allReviews.filter(r => r.providerId === p.id); return <ProviderCard key={p.id} provider={p} review={{count:own.length,average:own.length ? own.reduce((a,b)=>a+b.rating,0)/own.length : 0}}/>; })}</div> : <div className="empty-state"><SearchX size={33}/><h3>No professionals found</h3><p>Try a different category or broader location. New professionals are joining as KUFIX grows.</p><Link href="/professionals" className="btn btn-primary">View all profiles</Link></div>}{filtered.some(p=>p.isDemo) && <p className="sample-note">Sample profiles are demonstration content and are not verified real service providers.</p>}</div></div></section></main><Footer/></>;
+
+export default async function ProfessionalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    category?: string;
+    location?: string;
+    availability?: string;
+    verified?: string;
+  }>;
+}) {
+  const params = await searchParams;
+  const categories = await getCategories();
+  const all = await getProviders();
+  const allReviews = await db
+    .select()
+    .from(reviews)
+    .where(eq(reviews.hidden, false));
+
+  const filtered = all.filter(
+    (p) =>
+      (!params.category || offersCategory(p, params.category)) &&
+      (!params.location ||
+        `${p.location} ${p.area}`.toLowerCase().includes(params.location.toLowerCase())) &&
+      (!params.availability || p.available) &&
+      (!params.verified || p.verification !== 'Not verified')
+  );
+
+  return (
+    <>
+      <Header />
+      <main>
+        <PageBanner
+          eyebrow="FIND YOUR PERSON"
+          title="The right hands for the job."
+          description="Browse local professionals, review their verified credentials, compare ratings, and book directly or request a quote."
+        />
+        <section className="content-section">
+          <div className="container filter-layout">
+            <aside className="filter-panel">
+              <h3>Filter results</h3>
+              <form action="/professionals">
+                <div className="form-field">
+                  <label htmlFor="category">Service category</label>
+                  <select name="category" id="category" defaultValue={params.category || ''}>
+                    <option value="">All services</option>
+                    {categories.map((c) => (
+                      <option value={c.name} key={c.slug}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label htmlFor="location">Location</label>
+                  <input
+                    name="location"
+                    id="location"
+                    placeholder="e.g. Wuse, Abuja"
+                    defaultValue={params.location || ''}
+                  />
+                </div>
+                <div className="form-field">
+                  <label htmlFor="availability">Availability</label>
+                  <select
+                    name="availability"
+                    id="availability"
+                    defaultValue={params.availability || ''}
+                  >
+                    <option value="">Any availability</option>
+                    <option value="yes">Available now</option>
+                  </select>
+                </div>
+                <div className="form-field">
+                  <label htmlFor="verified">Verification</label>
+                  <select name="verified" id="verified" defaultValue={params.verified || ''}>
+                    <option value="">Any status</option>
+                    <option value="yes">Checked profiles only</option>
+                  </select>
+                </div>
+                <button className="btn btn-primary">Apply filters</button>
+              </form>
+              <Link
+                href="/professionals"
+                className="small-link"
+                style={{ display: 'block', textAlign: 'center', marginTop: 16 }}
+              >
+                Clear filters
+              </Link>
+            </aside>
+            <div>
+              <div className="results-head">
+                <div>
+                  <h2>{params.category || 'Explore professionals'}</h2>
+                  <p>
+                    {filtered.length} {filtered.length === 1 ? 'profile' : 'profiles'} found ·
+                    Abuja, Nigeria
+                  </p>
+                </div>
+                <Link href="/request-quote" className="text-link">
+                  Request a quote →
+                </Link>
+              </div>
+              {filtered.length ? (
+                <div className="results-grid">
+                  {filtered.map((p) => {
+                    const own = allReviews.filter((r) => r.providerId === p.id);
+                    return (
+                      <ProviderCard
+                        key={p.id}
+                        provider={p}
+                        review={{
+                          count: own.length,
+                          average: own.length
+                            ? own.reduce((a, b) => a + b.rating, 0) / own.length
+                            : 0,
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="empty-state">
+                  <SearchX size={33} />
+                  <h3>No professionals found</h3>
+                  <p>
+                    Try a different category or broader location. New professionals are joining
+                    KUFIX every week.
+                  </p>
+                  <Link href="/professionals" className="btn btn-primary">
+                    View all profiles
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
 }

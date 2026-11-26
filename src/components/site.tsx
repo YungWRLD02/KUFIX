@@ -1,31 +1,384 @@
 import Link from 'next/link';
 import { getUser } from '@/lib/auth';
 import { categories, getCategories } from '@/lib/marketplace';
-import { ArrowRight, ArrowUpRight, BatteryCharging, ChevronDown, Droplets, Hammer, MapPin, Menu, Search, ShieldCheck, Snowflake, Sparkles, Star, Wrench, Zap } from 'lucide-react';
+import SafeAvatar from '@/components/safe-avatar';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  BatteryCharging,
+  ChevronDown,
+  Droplets,
+  Hammer,
+  MapPin,
+  Menu,
+  Search,
+  ShieldCheck,
+  Snowflake,
+  Star,
+  Wrench,
+  Zap,
+} from 'lucide-react';
 import { logoutAction } from '@/app/actions';
 
-const iconMap = { Zap, Droplets, Snowflake, BatteryCharging, Sparkles, Hammer };
+const iconMap = { Zap, Droplets, Snowflake, BatteryCharging, Hammer, Wrench };
 
 export function Logo({ light = false }: { light?: boolean }) {
-  return <Link href="/" className={`logo ${light ? 'logo-light' : ''}`} aria-label="KUFIX home"><img src={light ? '/images/kufix-logo-light.svg' : '/images/kufix-logo.svg'} alt="KUFIX — Find Skills. Get Connected. Get it Done." width="180" height="47" /></Link>;
+  return (
+    <Link href="/" className={`logo ${light ? 'logo-light' : ''}`} aria-label="KUFIX home">
+      <img
+        src={light ? '/images/kufix-logo-light.svg' : '/images/kufix-logo.svg'}
+        alt="KUFIX — Find Skills. Get Connected. Get it Done."
+        width="180"
+        height="47"
+      />
+    </Link>
+  );
 }
 
 export async function Header() {
   const user = await getUser();
-  return <header className="site-header"><div className="container nav-inner"><Logo/><nav className="desktop-nav" aria-label="Main navigation"><Link href="/services">Explore services</Link><Link href="/professionals">Find professionals</Link><Link href="/jobs">Job board</Link><Link href="/#how-it-works">How it works</Link><Link href="/become-a-provider">Become a provider</Link></nav><div className="nav-actions">{user ? <><Link href="/login#demo" className="nav-demo">Try demo</Link><Link href="/dashboard" className="btn btn-primary nav-signup">My dashboard <ArrowUpRight size={16}/></Link></> : <><Link href="/login#demo" className="nav-demo">Try demo</Link><Link href="/login" className="nav-login">Log in</Link><Link href="/signup" className="btn btn-primary nav-signup">Get started <ArrowUpRight size={16}/></Link></>}</div><details className="mobile-nav"><summary aria-label="Open menu"><Menu size={25}/></summary><div className="mobile-nav-panel"><Link href="/services">Explore services</Link><Link href="/professionals">Find professionals</Link><Link href="/jobs">Job board</Link><Link href="/#how-it-works">How it works</Link><Link href="/become-a-provider">Become a provider</Link><Link href="/about">About us</Link><Link href="/contact">Contact</Link><Link href="/login#demo">Try a dashboard demo</Link><Link href={user ? '/dashboard' : '/login'}>{user ? 'My dashboard' : 'Log in'}</Link>{!user && <Link href="/signup" className="btn btn-primary">Get started</Link>}</div></details></div></header>;
+  return (
+    <header className="site-header">
+      <div className="container nav-inner">
+        <Logo />
+        <nav className="desktop-nav" aria-label="Main navigation">
+          <Link href="/services">Explore services</Link>
+          <Link href="/professionals">Find professionals</Link>
+          <Link href="/jobs">Job board</Link>
+          <Link href="/#how-it-works">How it works</Link>
+          <Link href="/become-a-provider">Become a provider</Link>
+        </nav>
+        <div className="nav-actions">
+          {user ? (
+            <Link href="/dashboard" className="btn btn-primary nav-signup">
+              My dashboard <ArrowUpRight size={16} />
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="nav-login">
+                Log in
+              </Link>
+              <Link href="/signup" className="btn btn-primary nav-signup">
+                Get started <ArrowUpRight size={16} />
+              </Link>
+            </>
+          )}
+        </div>
+        <details className="mobile-nav">
+          <summary aria-label="Open menu">
+            <Menu size={25} />
+          </summary>
+          <div className="mobile-nav-panel">
+            <Link href="/services">Explore services</Link>
+            <Link href="/professionals">Find professionals</Link>
+            <Link href="/jobs">Job board</Link>
+            <Link href="/#how-it-works">How it works</Link>
+            <Link href="/become-a-provider">Become a provider</Link>
+            <Link href="/about">About us</Link>
+            <Link href="/contact">Contact</Link>
+            <Link href={user ? '/dashboard' : '/login'}>
+              {user ? 'My dashboard' : 'Log in'}
+            </Link>
+            {!user && (
+              <Link href="/signup" className="btn btn-primary">
+                Get started
+              </Link>
+            )}
+          </div>
+        </details>
+      </div>
+    </header>
+  );
 }
 
 export function Footer() {
-  return <footer className="footer"><div className="container"><div className="footer-grid"><div className="footer-brand"><Logo light/><p>Connecting you to the right skills<br/>for every job, big or small.</p><span className="footer-location"><MapPin size={15}/> Starting in Abuja, Nigeria</span></div><div><h4>Explore</h4><Link href="/services">All services</Link><Link href="/professionals">Find professionals</Link><Link href="/jobs">Job board</Link><Link href="/request-quote">Request a quote</Link><Link href="/#how-it-works">How it works</Link></div><div><h4>KUFIX</h4><Link href="/about">About us</Link><Link href="/become-a-provider">Become a provider</Link><Link href="/contact">Contact us</Link><Link href="/dashboard">My dashboard</Link></div><div><h4>Support</h4><Link href="/contact">Help & support</Link><Link href="/privacy">Privacy policy</Link><Link href="/terms">Terms of use</Link></div></div><div className="footer-bottom"><span>© {new Date().getFullYear()} KUFIX. All rights reserved.</span><span>Made for the way Nigeria works <span className="heart">♥</span></span></div></div></footer>;
+  return (
+    <footer className="footer">
+      <div className="container">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <Logo light />
+            <p>
+              Connecting you to the right skills
+              <br />
+              for every job, big or small.
+            </p>
+            <span className="footer-location">
+              <MapPin size={15} /> Starting in Abuja, Nigeria
+            </span>
+          </div>
+          <div>
+            <h4>Explore</h4>
+            <Link href="/services">All services</Link>
+            <Link href="/professionals">Find professionals</Link>
+            <Link href="/jobs">Job board</Link>
+            <Link href="/request-quote">Request a quote</Link>
+            <Link href="/#how-it-works">How it works</Link>
+          </div>
+          <div>
+            <h4>KUFIX</h4>
+            <Link href="/about">About us</Link>
+            <Link href="/become-a-provider">Become a provider</Link>
+            <Link href="/contact">Contact us</Link>
+            <Link href="/dashboard">My dashboard</Link>
+          </div>
+          <div>
+            <h4>Support</h4>
+            <Link href="/contact">Help & support</Link>
+            <Link href="/privacy">Privacy policy</Link>
+            <Link href="/terms">Terms of use</Link>
+          </div>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} KUFIX. All rights reserved.</span>
+          <span>
+            Made for the way Nigeria works <span className="heart">♥</span>
+          </span>
+        </div>
+      </div>
+    </footer>
+  );
 }
 
-export function CategoryIcon({ name, size = 27 }: { name: string; size?: number }) { const key = categories.find(c => c.name === name)?.icon as keyof typeof iconMap | undefined; const Icon = key ? iconMap[key] : Wrench; return <Icon size={size} strokeWidth={1.8}/>; }
-export async function CategoryCards() { const activeCategories = await getCategories(); return <div className="category-grid">{activeCategories.map(c => <Link key={c.slug} href={`/professionals?category=${encodeURIComponent(c.name)}`} className="category-card"><div className={`category-icon ${c.tone}`}><CategoryIcon name={c.name}/></div><div className="category-content"><h3>{c.name}</h3><p>{c.description}</p></div><span className="category-arrow"><ArrowUpRight size={19}/></span></Link>)}</div>; }
-export type Provider = { id: string; name: string; category: string; location: string; area?: string; bio: string; experience?: string | null; avatar: string | null; verification: string; isDemo: boolean; available: boolean; servicesOffered?: string };
-export function ProviderCard({ provider, review }: { provider: Provider; review?: { average: number; count: number } }) {
-  const allServices = [provider.category, ...(provider.servicesOffered || '').split(',').map(c => c.trim()).filter(Boolean).filter(c => c !== provider.category)];
-  return <article className="provider-card"><div className="provider-card-top"><div className="avatar">{provider.avatar ? <img src={provider.avatar} alt="" /> : <span>{provider.name.split(' ').map(w => w[0]).slice(0,2).join('')}</span>}</div><div className="provider-info"><h3>{provider.name}</h3><p className="provider-category">{provider.category}</p><span className="provider-services">{allServices.length > 1 ? ` +${allServices.length - 1} more` : ' '}</span></div><span className="provider-available"><span/> {provider.available ? 'Available' : 'Unavailable'}</span></div><div className="provider-meta"><span><MapPin size={15}/>{provider.location}</span>{review && review.count > 0 ? <span><Star size={15} fill="currentColor"/>{review.average.toFixed(1)} ({review.count})</span> : <span className="new-profile">New profile</span>}</div><p className="provider-bio">{provider.bio}</p>{allServices.length > 1 && <div className="provider-pills">{allServices.map(service => <span key={service} className="provider-pill">{service}</span>)}</div>}<div className="provider-card-bottom"><span className="profile-label">{provider.isDemo ? 'Sample profile' : provider.verification === 'Not verified' ? 'Verification pending' : <><ShieldCheck size={14}/>{provider.verification}</>}</span><Link href={`/professionals/${provider.id}`} className="provider-link">View profile <ArrowRight size={17}/></Link></div><details className="provider-elaborate"><summary>Elaborate <span className="elaborate-toggle">+</span></summary><div className="elaborate-body"><div className="elaborate-section"><small>WHAT THEY OFFER</small><div className="provider-pills">{allServices.map(service => <span key={service} className="provider-pill">{service}</span>)}</div></div><div className="elaborate-row"><span>Experience</span><strong>{provider.experience || 'Not detailed'}</strong></div><div className="elaborate-row"><span>Serving</span><strong>{provider.area || provider.location}</strong></div><div className="elaborate-row"><span>Availability</span><strong>{provider.available ? 'Accepting new requests' : 'Not available right now'}</strong></div>{provider.isDemo && <p className="elaborate-note">Sample profile — demonstration only, no real provider is behind this card.</p>}<Link href={`/professionals/${provider.id}`} className="provider-link">Open full profile <ArrowRight size={16}/></Link></div></details></article>;
+export function CategoryIcon({ name, size = 27 }: { name: string; size?: number }) {
+  const key = categories.find((c) => c.name === name)?.icon as keyof typeof iconMap | undefined;
+  const Icon = key && iconMap[key] ? iconMap[key] : Wrench;
+  return <Icon size={size} strokeWidth={1.8} />;
 }
-export async function SearchBar({ category = '', location = '' }: { category?: string; location?: string }) { const activeCategories = await getCategories(); return <form action="/professionals" className="search-bar"><div className="search-field search-service"><span className="search-icon"><Search size={20}/></span><div><label htmlFor="search-category">What service do you need?</label><select id="search-category" name="category" defaultValue={category}><option value="">All services</option>{activeCategories.map(c => <option key={c.slug} value={c.name}>{c.name}</option>)}</select></div><ChevronDown size={15} className="field-chevron"/></div><div className="search-divider"/><div className="search-field search-location"><span className="search-icon"><MapPin size={20}/></span><div><label htmlFor="search-location">Where do you need it?</label><input id="search-location" name="location" defaultValue={location} placeholder="e.g. Wuse 2, Abuja"/></div></div><button className="btn btn-primary search-submit" type="submit"><Search size={19}/><span>Find professionals</span></button></form>; }
-export function PageBanner({ eyebrow, title, description }: { eyebrow: string; title: string; description: string }) { return <section className="page-banner"><div className="container"><div className="eyebrow"><span className="eyebrow-line"/>{eyebrow}</div><h1>{title}</h1><p>{description}</p></div></section>; }
-export function LogoutButton() { return <form action={logoutAction}><button className="logout-button" type="submit">Log out</button></form>; }
+
+export async function CategoryCards() {
+  const activeCategories = await getCategories();
+  return (
+    <div className="category-grid">
+      {activeCategories.map((c) => (
+        <Link
+          key={c.slug}
+          href={`/professionals?category=${encodeURIComponent(c.name)}`}
+          className="category-card"
+        >
+          <div className={`category-icon ${c.tone}`}>
+            <CategoryIcon name={c.name} />
+          </div>
+          <div className="category-content">
+            <h3>{c.name}</h3>
+            <p>{c.description}</p>
+          </div>
+          <span className="category-arrow">
+            <ArrowUpRight size={19} />
+          </span>
+        </Link>
+      ))}
+    </div>
+  );
+}
+
+export type Provider = {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  area?: string;
+  bio: string;
+  experience?: string | null;
+  avatar: string | null;
+  verification: string;
+  available: boolean;
+  servicesOffered?: string;
+};
+
+export function ProviderCard({
+  provider,
+  review,
+}: {
+  provider: Provider;
+  review?: { average: number; count: number };
+}) {
+  const allServices = [
+    provider.category,
+    ...(provider.servicesOffered || '')
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .filter((c) => c !== provider.category),
+  ];
+  const initials = provider.name
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('');
+
+  return (
+    <article className="provider-card">
+      <div className="provider-card-top">
+        <div className="avatar">
+          {provider.avatar ? (
+            <SafeAvatar src={provider.avatar} alt={provider.name} initials={initials} />
+          ) : (
+            <span>{initials}</span>
+          )}
+        </div>
+        <div className="provider-info">
+          <h3>{provider.name}</h3>
+          <p className="provider-category">{provider.category}</p>
+          <span className="provider-services">
+            {allServices.length > 1 ? ` +${allServices.length - 1} more` : ' '}
+          </span>
+        </div>
+        <span className="provider-available">
+          <span /> {provider.available ? 'Available' : 'Unavailable'}
+        </span>
+      </div>
+      <div className="provider-meta">
+        <span>
+          <MapPin size={15} />
+          {provider.location}
+        </span>
+        {review && review.count > 0 ? (
+          <span>
+            <Star size={15} fill="currentColor" />
+            {review.average.toFixed(1)} ({review.count})
+          </span>
+        ) : (
+          <span className="new-profile">New profile</span>
+        )}
+      </div>
+      <p className="provider-bio">{provider.bio}</p>
+      {allServices.length > 1 && (
+        <div className="provider-pills">
+          {allServices.map((service) => (
+            <span key={service} className="provider-pill">
+              {service}
+            </span>
+          ))}
+        </div>
+      )}
+      <div className="provider-card-bottom">
+        <span className="profile-label">
+          {provider.verification === 'Not verified' ? (
+            'Verification pending'
+          ) : (
+            <>
+              <ShieldCheck size={14} />
+              {provider.verification}
+            </>
+          )}
+        </span>
+        <Link href={`/professionals/${provider.id}`} className="provider-link">
+          View profile <ArrowRight size={17} />
+        </Link>
+      </div>
+      <details className="provider-elaborate">
+        <summary>
+          Elaborate <span className="elaborate-toggle">+</span>
+        </summary>
+        <div className="elaborate-body">
+          <div className="elaborate-section">
+            <small>WHAT THEY OFFER</small>
+            <div className="provider-pills">
+              {allServices.map((service) => (
+                <span key={service} className="provider-pill">
+                  {service}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="elaborate-row">
+            <span>Experience</span>
+            <strong>{provider.experience || 'Not detailed'}</strong>
+          </div>
+          <div className="elaborate-row">
+            <span>Serving</span>
+            <strong>{provider.area || provider.location}</strong>
+          </div>
+          <div className="elaborate-row">
+            <span>Verification</span>
+            <strong>{provider.verification}</strong>
+          </div>
+        </div>
+      </details>
+    </article>
+  );
+}
+
+export async function SearchBar({
+  category = '',
+  location = '',
+}: {
+  category?: string;
+  location?: string;
+}) {
+  const activeCategories = await getCategories();
+  return (
+    <form action="/professionals" className="search-bar">
+      <div className="search-field search-service">
+        <span className="search-icon">
+          <Search size={20} />
+        </span>
+        <div>
+          <label htmlFor="search-category">What service do you need?</label>
+          <select id="search-category" name="category" defaultValue={category}>
+            <option value="">All services</option>
+            {activeCategories.map((c) => (
+              <option key={c.slug} value={c.name}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <ChevronDown size={15} className="field-chevron" />
+      </div>
+      <div className="search-divider" />
+      <div className="search-field search-location">
+        <span className="search-icon">
+          <MapPin size={20} />
+        </span>
+        <div>
+          <label htmlFor="search-location">Where do you need it?</label>
+          <input
+            id="search-location"
+            name="location"
+            defaultValue={location}
+            placeholder="e.g. Wuse 2, Abuja"
+          />
+        </div>
+      </div>
+      <button className="btn btn-primary search-submit" type="submit">
+        <Search size={19} />
+        <span>Find professionals</span>
+      </button>
+    </form>
+  );
+}
+
+export function PageBanner({
+  eyebrow,
+  title,
+  description,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <section className="page-banner">
+      <div className="container">
+        <div className="eyebrow">
+          <span className="eyebrow-line" />
+          {eyebrow}
+        </div>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+    </section>
+  );
+}
+
+export function LogoutButton() {
+  return (
+    <form action={logoutAction}>
+      <button className="logout-button" type="submit">
+        Log out
+      </button>
+    </form>
+  );
+}

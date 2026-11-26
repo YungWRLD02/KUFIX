@@ -50,6 +50,7 @@ export const bookings = pgTable('bookings', {
   time: varchar('time', { length: 30 }).notNull(),
   location: varchar('location', { length: 255 }).notNull(),
   instructions: text('instructions'),
+  completionNote: text('completion_note'),
   status: varchar('status', { length: 30 }).notNull().default('Pending'),
   price: numeric('price', { precision: 12, scale: 2 }),
   paymentStatus: varchar('payment_status', { length: 30 }).notNull().default('Unpaid'),

@@ -3,4 +3,165 @@ import { Header, Footer } from '@/components/site';
 import { getCategories } from '@/lib/marketplace';
 
 export const metadata = { title: 'Create account' };
-export default async function SignupPage({searchParams}:{searchParams:Promise<{role?:string;error?:string}>}){ const {role:roleParam,error}=await searchParams; const role=roleParam==='provider'?'provider':'customer'; const categories=await getCategories(); return <><Header/><main className="auth-wrap"><div className="auth-card"><div className="eyebrow"><span className="eyebrow-line"/> JOIN KUFIX</div><h1>{role==='provider'?'Grow with KUFIX.':'Let’s get things done.'}</h1><p>{role==='provider'?'Create a professional profile and start connecting with local customers.':'Create your account to book professionals and request quotes.'}</p><div className="role-tabs"><Link href="/signup" className={role==='customer'?'active':''}>I need a service</Link><Link href="/signup?role=provider" className={role==='provider'?'active':''}>I provide services</Link></div>{error&&<div className="alert alert-error">{error}</div>}<form action="/api/auth/register" method="post" className="form-stack"><input type="hidden" name="role" value={role}/><div className="form-field"><label htmlFor="name">{role==='provider'?'Your name or business name':'Full name'} *</label><input id="name" name="name" placeholder="Enter your name" required/></div><div className="form-field"><label htmlFor="email">Email address *</label><input id="email" name="email" type="email" placeholder="you@example.com" required/></div><div className="form-field"><label htmlFor="phone">Phone number *</label><input id="phone" name="phone" type="tel" placeholder="+234 800 000 0000" required/></div><div className="form-field"><label htmlFor="location">{role==='provider'?'Business location':'Your location'} *</label><input id="location" name="location" placeholder="e.g. Wuse 2, Abuja" required/></div>{role==='provider'&&<><div className="form-field"><label htmlFor="category">Primary service category *</label><select id="category" name="category" required><option value="">Choose a category</option>{categories.map(c=><option key={c.slug} value={c.name}>{c.name}</option>)}</select></div><div className="form-field"><label>Also offer these services (optional)</label><div className="service-categories-list">{categories.map(c=><label key={c.slug} className="service-category-option"><input type="checkbox" name="servicesOffered" value={c.name}/><span>{c.name}</span></label>)}</div><span className="helper-text">Check every service you can offer. Your primary category is the most important one.</span></div><div className="form-field"><label htmlFor="bio">Describe your services *</label><textarea id="bio" name="bio" placeholder="What do you do and who do you help?" required/></div></>}<div className="form-field"><label htmlFor="password">Password *</label><input id="password" name="password" type="password" minLength={8} placeholder="At least 8 characters" required/></div><button className="btn btn-primary">Create {role==='provider'?'provider':'customer'} account →</button></form><p className="helper-text" style={{marginTop:16}}>By creating an account, you agree to our <Link href="/terms" className="small-link">Terms</Link> and <Link href="/privacy" className="small-link">Privacy Policy</Link>. Phone verification is not yet available; profiles remain unverified until checks are completed.</p><p className="auth-bottom">Already have an account? <Link href="/login">Log in</Link></p></div></main><Footer/></>; }
+
+export default async function SignupPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ role?: string; error?: string }>;
+}) {
+  const { role: roleParam, error } = await searchParams;
+  const role = roleParam === 'provider' ? 'provider' : 'customer';
+  const categories = await getCategories();
+
+  return (
+    <>
+      <Header />
+      <main className="auth-wrap">
+        <div className="auth-card">
+          <div className="eyebrow">
+            <span className="eyebrow-line" /> JOIN KUFIX
+          </div>
+          <h1>{role === 'provider' ? 'Grow with KUFIX.' : 'Let’s get things done.'}</h1>
+          <p>
+            {role === 'provider'
+              ? 'Create a professional profile, showcase your skills, and connect with clients.'
+              : 'Create your account to hire vetted professionals and request quotations.'}
+          </p>
+
+          <div className="role-tabs">
+            <Link href="/signup" className={role === 'customer' ? 'active' : ''}>
+              I need a service
+            </Link>
+            <Link href="/signup?role=provider" className={role === 'provider' ? 'active' : ''}>
+              I provide services
+            </Link>
+          </div>
+
+          {error && <div className="alert alert-error">{error}</div>}
+
+          <form action="/api/auth/register" method="post" className="form-stack">
+            <input type="hidden" name="role" value={role} />
+
+            <div className="form-field">
+              <label htmlFor="name">
+                {role === 'provider' ? 'Your name or business name' : 'Full name'} *
+              </label>
+              <input id="name" name="name" placeholder="Enter your name" required />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="email">Email address *</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="phone">Phone number *</label>
+              <input
+                id="phone"
+                name="phone"
+                type="tel"
+                placeholder="+234 800 000 0000"
+                required
+              />
+            </div>
+
+            <div className="form-field">
+              <label htmlFor="location">
+                {role === 'provider' ? 'Business location' : 'Your location'} *
+              </label>
+              <input
+                id="location"
+                name="location"
+                placeholder="e.g. Wuse 2, Abuja"
+                required
+              />
+            </div>
+
+            {role === 'provider' && (
+              <>
+                <div className="form-field">
+                  <label htmlFor="category">Primary service category *</label>
+                  <select id="category" name="category" required defaultValue="">
+                    <option value="" disabled>
+                      Choose a category
+                    </option>
+                    {categories.map((c) => (
+                      <option key={c.slug} value={c.name}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-field">
+                  <label>Also offer these services (optional)</label>
+                  <div className="service-categories-list">
+                    {categories.map((c) => (
+                      <label key={c.slug} className="service-category-option">
+                        <input type="checkbox" name="servicesOffered" value={c.name} />
+                        <span>{c.name}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <span className="helper-text">
+                    Check every service you can offer. Your primary category is the main one shown
+                    on your card.
+                  </span>
+                </div>
+
+                <div className="form-field">
+                  <label htmlFor="bio">Describe your services *</label>
+                  <textarea
+                    id="bio"
+                    name="bio"
+                    placeholder="Tell customers about your experience, expertise, and what you do best."
+                    required
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="form-field">
+              <label htmlFor="password">Password *</label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                minLength={8}
+                placeholder="At least 8 characters"
+                required
+              />
+            </div>
+
+            <button className="btn btn-primary" type="submit">
+              Create {role === 'provider' ? 'provider' : 'customer'} account →
+            </button>
+          </form>
+
+          <p className="helper-text" style={{ marginTop: 16 }}>
+            By creating an account, you agree to our{' '}
+            <Link href="/terms" className="small-link">
+              Terms
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="small-link">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+
+          <p className="auth-bottom">
+            Already have an account? <Link href="/login">Log in</Link>
+          </p>
+        </div>
+      </main>
+      <Footer />
+    </>
+  );
+}

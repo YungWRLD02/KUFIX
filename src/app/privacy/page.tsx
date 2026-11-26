@@ -1,3 +1,59 @@
 import { Header, Footer, PageBanner } from '@/components/site';
-export const metadata={title:'Privacy policy'};
-export default function PrivacyPage(){return <><Header/><main><PageBanner eyebrow="YOUR DATA MATTERS" title="Privacy policy" description="How KUFIX handles the information you share with us."/><section className="content-section"><div className="container prose"><p>This policy describes the data handled by this early version of KUFIX. It should be reviewed and updated before a full public launch.</p><h2>Information we collect</h2><p>When you register, we store your name, email address, phone number, location and an encrypted password representation. Providers may add service and profile details. Booking requests, quote requests, reviews and support messages contain information you choose to submit.</p><h2>How we use it</h2><p>We use this information to provide accounts, display provider profiles, manage bookings and quotations, show reviews after completed jobs, and respond to support requests. Public profiles do not display private phone numbers or email addresses.</p><h2>Security and retention</h2><p>Passwords are hashed before storage, and sign-in uses an HTTP-only cookie. Please avoid sharing sensitive identity documents or payment details in free-text fields. This early version does not accept document uploads or hold payments.</p><h2>Your choices</h2><p>You can update your name, phone and location from your dashboard. Use our contact form to request other account or data changes. Bookings and quote requests require an internet connection.</p><h2>Third-party imagery</h2><p>Illustrative photography and clearly marked sample provider profiles may use stock imagery. They are not evidence of real provider identity or endorsement.</p></div></section></main><Footer/></>}
+
+export const metadata = { title: 'Privacy policy' };
+
+export default function PrivacyPage() {
+  return (
+    <>
+      <Header />
+      <main>
+        <PageBanner
+          eyebrow="YOUR DATA MATTERS"
+          title="Privacy policy"
+          description="How KUFIX handles, protects, and respects the personal information you share with us."
+        />
+        <section className="content-section">
+          <div className="container prose">
+            <p>
+              At KUFIX, we take data protection and user privacy seriously. This Privacy Policy
+              describes how we collect, process, and safeguard your personal data in accordance with
+              the Nigeria Data Protection Act (NDPA) and global industry standards.
+            </p>
+
+            <h2>Information we collect</h2>
+            <p>
+              When you create an account, we collect your name, email address, telephone number, and
+              operating location. For service providers, we also collect trade classifications,
+              service descriptions, portfolio images, and government-issued identification documents
+              submitted for verification purposes.
+            </p>
+
+            <h2>How we use your information</h2>
+            <p>
+              We process personal information to provide marketplace services, facilitate direct
+              communications between clients and professionals, secure escrow transactions, verify
+              professional credentials, and provide responsive customer support. Public profiles
+              display only designated business information and never disclose private personal contact
+              data without authorization.
+            </p>
+
+            <h2>Security and document retention</h2>
+            <p>
+              All account passwords are encrypted using one-way scrypt key derivation. Verification
+              documents are stored in secure private storage accessible exclusively to authorized
+              compliance personnel for identity review.
+            </p>
+
+            <h2>Your rights and account management</h2>
+            <p>
+              You maintain full control over your personal information. You can edit your profile,
+              service offerings, and contact details directly through your KUFIX Dashboard or contact
+              our data protection officer via the Contact Us page.
+            </p>
+          </div>
+        </section>
+      </main>
+      <Footer />
+    </>
+  );
+}

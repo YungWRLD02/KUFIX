@@ -24,14 +24,14 @@ export async function walletTransactionsFor(userId: string, limit = 20) {
   return db.select().from(walletTransactions).where(eq(walletTransactions.userId, userId)).orderBy(desc(walletTransactions.createdAt)).limit(limit);
 }
 
-/** Deposits are simulated instantly in this version — no payment provider is connected. */
-export async function depositToWallet(userId: string, amount: number, note = 'Instant deposit (simulation)') {
+/** Credit a wallet deposit. */
+export async function depositToWallet(userId: string, amount: number, note = 'Direct deposit') {
   return creditDeposit(userId, amount, null, note);
 }
 
 /**
  * Actually credit a deposit. Idempotent per external reference:
- * the same Paystack/simulated reference can only credit once.
+ * the same Paystack reference can only credit once.
  */
 export async function creditDeposit(userId: string, amount: number, externalReference: string | null, note: string) {
   if (externalReference) {
